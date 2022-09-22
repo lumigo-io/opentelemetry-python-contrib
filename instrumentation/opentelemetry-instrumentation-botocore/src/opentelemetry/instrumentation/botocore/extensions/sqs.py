@@ -33,8 +33,10 @@ class _SqsExtension(_AwsSdkExtension):
     def on_success(self, span: Span, result: _BotoResultT):
         operation = self._call_context.operation
         if operation in SUPPORTED_OPERATIONS:
+            url = self._call_context.params.get("QueueUrl", "")
             span.set_attribute(SpanAttributes.MESSAGING_SYSTEM, "aws.sqs")
-            span.set_attribute(SpanAttributes.MESSAGING_DESTINATION, self._call_context.params.get("QueueUrl", "").split("/")[-1])
+            span.set_attribute(SpanAttributes.MESSAGING_URL, url)
+            span.set_attribute(SpanAttributes.MESSAGING_DESTINATION, url.split("/")[-1])
             if operation == 'SendMessage':
                 span.set_attribute(SpanAttributes.MESSAGING_MESSAGE_ID, result.get("MessageId"))
             elif operation == 'SendMessageBatch' and result["Successful"]:
