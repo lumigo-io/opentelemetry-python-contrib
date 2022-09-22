@@ -25,36 +25,41 @@ class TestDynamoDbExtension(TestBase):
     @mock_sqs
     def test_sqs_messaging_send_message(self):
         create_queue_result = self.client.create_queue(QueueName="test_queue_name")
-        response = self.client.send_message(QueueUrl=create_queue_result["QueueUrl"], MessageBody="content")
+        queue_url = create_queue_result["QueueUrl"]
+        response = self.client.send_message(QueueUrl=queue_url, MessageBody="content")
 
         spans = self.memory_exporter.get_finished_spans()
         assert spans
         self.assertEqual(len(spans), 2)
         span = spans[1]
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_SYSTEM], "aws.sqs")
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_URL], queue_url)
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_DESTINATION], "test_queue_name")
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_MESSAGE_ID], response["MessageId"])
 
     @mock_sqs
     def test_sqs_messaging_send_message_batch(self):
         create_queue_result = self.client.create_queue(QueueName="test_queue_name")
-        response = self.client.send_message_batch(QueueUrl=create_queue_result["QueueUrl"], Entries=[
+        queue_url = create_queue_result["QueueUrl"]
+        response = self.client.send_message_batch(QueueUrl=queue_url, Entries=[
             {"Id": "1", "MessageBody": "content"},
             {"Id": "2", "MessageBody": "content2"},
         ])
 
         spans = self.memory_exporter.get_finished_spans()
         assert spans
-        self.assertEqual(len(spans), 3)
-        for span, message_result in zip(spans[1:], response["Successful"]):
-            self.assertEqual(span.attributes[SpanAttributes.MESSAGING_SYSTEM], "aws.sqs")
-            self.assertEqual(span.attributes[SpanAttributes.MESSAGING_DESTINATION], "test_queue_name")
-            self.assertEqual(span.attributes[SpanAttributes.MESSAGING_MESSAGE_ID], message_result["MessageId"])
+        self.assertEqual(len(spans), 2)
+        span = spans[1]
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_SYSTEM], "aws.sqs")
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_URL], queue_url)
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_DESTINATION], "test_queue_name")
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_MESSAGE_ID], response["Successful"][0]["MessageId"])
 
     @mock_sqs
     def test_sqs_messaging_receive_message(self):
         create_queue_result = self.client.create_queue(QueueName="test_queue_name")
-        response = self.client.send_message(QueueUrl=create_queue_result["QueueUrl"], MessageBody="content")
+        queue_url = create_queue_result["QueueUrl"]
+        self.client.send_message(QueueUrl=queue_url, MessageBody="content")
         message_result = self.client.receive_message(QueueUrl=create_queue_result["QueueUrl"])
 
         spans = self.memory_exporter.get_finished_spans()
@@ -62,5 +67,6 @@ class TestDynamoDbExtension(TestBase):
         self.assertEqual(len(spans), 3)
         span = spans[-1]
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_SYSTEM], "aws.sqs")
+        self.assertEqual(span.attributes[SpanAttributes.MESSAGING_URL], queue_url)
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_DESTINATION], "test_queue_name")
         self.assertEqual(span.attributes[SpanAttributes.MESSAGING_MESSAGE_ID], message_result["Messages"][0]["MessageId"])
