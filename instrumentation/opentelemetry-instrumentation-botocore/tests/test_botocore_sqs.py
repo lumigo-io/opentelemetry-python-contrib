@@ -115,7 +115,7 @@ class TestDynamoDbExtension(TestBase):
         )
 
     @mock_sqs
-    def test_sqs_messaging_receive_message(self):
+    def test_sqs_messaging_failed_operation(self):
         try:
             self.client.send_message(
                 QueueUrl="non-existing", MessageBody="content"
