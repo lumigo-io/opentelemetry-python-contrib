@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#1242](https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1242))
 - `opentelemetry-util-http` Add support for sanitizing HTTP header values.
   ([#1253](https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1253))
+- `opentelemetry-instrumentation-botocore` Support messaging system in the sqs extension.
+  ([#1346](https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1346))
 
 ### Fixed
 
