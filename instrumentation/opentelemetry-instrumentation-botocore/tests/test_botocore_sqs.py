@@ -113,3 +113,23 @@ class TestDynamoDbExtension(TestBase):
             span.attributes[SpanAttributes.MESSAGING_MESSAGE_ID],
             message_result["Messages"][0]["MessageId"],
         )
+
+    @mock_sqs
+    def test_sqs_messaging_receive_message(self):
+        try:
+            self.client.send_message(
+                QueueUrl="non-existing", MessageBody="content"
+            )
+        except Exception:
+            pass
+
+        spans = self.memory_exporter.get_finished_spans()
+        assert spans
+        self.assertEqual(len(spans), 1)
+        span = spans[0]
+        self.assertEqual(
+            span.attributes[SpanAttributes.MESSAGING_SYSTEM], "aws.sqs"
+        )
+        self.assertEqual(
+            span.attributes[SpanAttributes.MESSAGING_URL], "non-existing"
+        )
