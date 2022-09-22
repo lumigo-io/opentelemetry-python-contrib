@@ -36,11 +36,21 @@ class _SqsExtension(_AwsSdkExtension):
             url = self._call_context.params.get("QueueUrl", "")
             span.set_attribute(SpanAttributes.MESSAGING_SYSTEM, "aws.sqs")
             span.set_attribute(SpanAttributes.MESSAGING_URL, url)
-            span.set_attribute(SpanAttributes.MESSAGING_DESTINATION, url.split("/")[-1])
-            if operation == 'SendMessage':
-                span.set_attribute(SpanAttributes.MESSAGING_MESSAGE_ID, result.get("MessageId"))
-            elif operation == 'SendMessageBatch' and result["Successful"]:
-                span.set_attribute(SpanAttributes.MESSAGING_MESSAGE_ID, result["Successful"][0]["MessageId"])
-            elif operation == 'ReceiveMessage':
-                span.set_attribute(SpanAttributes.MESSAGING_MESSAGE_ID, result["Messages"][0]["MessageId"])
-
+            span.set_attribute(
+                SpanAttributes.MESSAGING_DESTINATION, url.split("/")[-1]
+            )
+            if operation == "SendMessage":
+                span.set_attribute(
+                    SpanAttributes.MESSAGING_MESSAGE_ID,
+                    result.get("MessageId"),
+                )
+            elif operation == "SendMessageBatch" and result["Successful"]:
+                span.set_attribute(
+                    SpanAttributes.MESSAGING_MESSAGE_ID,
+                    result["Successful"][0]["MessageId"],
+                )
+            elif operation == "ReceiveMessage":
+                span.set_attribute(
+                    SpanAttributes.MESSAGING_MESSAGE_ID,
+                    result["Messages"][0]["MessageId"],
+                )
