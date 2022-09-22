@@ -17,8 +17,8 @@ from opentelemetry.instrumentation.botocore.extensions.types import (
     _AwsSdkExtension,
     _BotoResultT,
 )
-from opentelemetry.trace.span import Span
 from opentelemetry.semconv.trace import SpanAttributes
+from opentelemetry.trace.span import Span
 
 SUPPORTED_OPERATIONS = ["SendMessage", "SendMessageBatch", "ReceiveMessage"]
 
